@@ -1,0 +1,1 @@
+worker: python wallet_checker_bot.py

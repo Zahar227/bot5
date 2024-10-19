@@ -1,0 +1,5 @@
+pyTelegramBotAPI
+web3
+mnemonic
+webdavclient3
+eth-account

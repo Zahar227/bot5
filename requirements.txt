@@ -4,3 +4,4 @@ mnemonic
 webdavclient3
 eth-account
 python
+pickle-mixin

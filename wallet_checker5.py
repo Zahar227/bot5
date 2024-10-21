@@ -1,11 +1,10 @@
 import telebot
-import python
 from mnemonic import Mnemonic
 from eth_account import Account
 from web3 import Web3
 import time
-import pickle
 import logging
+import pickle
 import os
 from concurrent.futures import ThreadPoolExecutor
 

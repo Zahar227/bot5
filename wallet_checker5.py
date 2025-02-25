@@ -1,4 +1,5 @@
 import telebot
+import secrets
 from mnemonic import Mnemonic
 from eth_account import Account
 from web3 import Web3
@@ -77,13 +78,12 @@ def save_cache(cache):
 # Загружаем кэш при старте программы
 nonce_cache = load_cache()
 
-# Функция генерации кошелька
+# Функция генерации кошелька через случайный приватный ключ
 def generate_wallet():
-    mnemo = Mnemonic("english")
-    seed_phrase = mnemo.generate(strength=128)  # 12 слов (128 бит энтропии)
-    acct = Account.from_mnemonic(seed_phrase)
+    private_key = "0x" + secrets.token_hex(32)  # Генерация 256-битного ключа
+    acct = Account.from_key(private_key)
     address = acct.address
-    return seed_phrase, address
+    return private_key, address
 
 # Функция проверки активности кошелька через nonce с автоматическим переключением ноды
 def check_activity(address):
@@ -123,18 +123,18 @@ def check_multiple_wallets(wallets):
 # Обработка команды /start
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.send_message(message.chat.id, "Привет! Я могу генерировать ETH-адреса, проверять их активность и предоставлять сид-фразы.")
+    bot.send_message(message.chat.id, "Привет! Я генерирую ETH-адреса, проверяю их активность и выдаю приватные ключи.")
 
 # Функция для проверки активности тестового кошелька
-def test_wallet_activity(seed_phrase, message):
+def test_wallet_activity(private_key, message):
     try:
-        acct = Account.from_mnemonic(seed_phrase)
+        acct = Account.from_key(private_key)
         address = acct.address
         nonce = check_activity(address)
 
         response = (
             f"Тестовый кошелек:\n"
-            f"Сид-фраза: {seed_phrase}\n"
+            f"Приватный ключ: {private_key}\n"
             f"Адрес: {address}\n"
             f"Количество транзакций (nonce): {nonce}"
         )
@@ -150,8 +150,8 @@ def test_wallet_activity(seed_phrase, message):
 # Обработка команды /test_wallet
 @bot.message_handler(commands=['test_wallet'])
 def test_wallet(message):
-    test_seed_phrase = "fluid giant mosquito sure prefer truth rare harsh nature urge relax sort"
-    test_wallet_activity(test_seed_phrase, message)
+    test_private_key = "0x4c0883a69102937d6231471b5dbb6204fe5129617082793fcd33b9e4b5d83ab4"  # Тестовый ключ
+    test_wallet_activity(test_private_key, message)
 
 # Обработка команды /generate
 @bot.message_handler(commands=['generate'])
@@ -163,7 +163,7 @@ def generate(message):
         wallets = [generate_wallet() for _ in range(10)]  # Генерация 10 кошельков
         activities = check_multiple_wallets(wallets)  # Проверка активности кошельков
 
-        for seed_phrase, address, nonce in activities:
+        for private_key, address, nonce in activities:
             count += 1
 
             if count % 1000 == 0:
@@ -171,7 +171,7 @@ def generate(message):
                 bot.send_message(message.chat.id, progress_message)
 
             if nonce > 0:  # Если кошелек имеет транзакции
-                response = f"Сгенерированная сид-фраза: {seed_phrase}\nАдрес: {address}\nКоличество транзакций: {nonce}"
+                response = f"Сгенерированный приватный ключ: {private_key}\nАдрес: {address}\nКоличество транзакций: {nonce}"
                 bot.send_message(message.chat.id, response)
                 return  # Останавливаем цикл после нахождения активного кошелька
 
